@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>地质灾害调查信息管理系统</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#333;min-height:100vh}
+.page-login,.page-admin,.page-detail{display:none}
+body.login .page-login{display:flex}
+body.admin .page-admin{display:block}
+body.detail .page-detail{display:block}
+.page-login{min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(160deg,#1a5276,#2e86c1)}
+.login-box{background:#fff;border-radius:16px;padding:40px 32px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.2);text-align:center}
+.login-box .icon{font-size:48px;margin-bottom:8px}
+.login-box h2{font-size:22px;color:#1a3a5c;margin-bottom:4px}
+.login-box .sub{font-size:13px;color:#999;margin-bottom:24px}
+.login-box input{width:100%;padding:12px;border:1px solid #d9d9d9;border-radius:8px;font-size:15px;margin-bottom:12px;text-align:center}
+.login-box input:focus{outline:none;border-color:#2d6a9f;box-shadow:0 0 0 3px rgba(45,106,159,0.1)}
+.login-box .msg{font-size:13px;color:#e74c3c;margin-bottom:8px;min-height:20px}
+.admin-header{background:linear-gradient(135deg,#1a3a5c,#2d6a9f);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
+.admin-header h1{font-size:18px}
+.admin-header .actions{display:flex;gap:8px;align-items:center}
+.admin-header .stats{font-size:13px;opacity:0.8;margin-right:8px}
+.admin-layout{max-width:1300px;margin:20px auto;padding:0 16px;display:flex;gap:20px}
+.admin-sidebar{width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:16px}
+.admin-main{flex:1;min-width:0}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden}
+.card-hd{padding:14px 18px;border-bottom:1px solid #f0f0f0;font-size:15px;font-weight:600;color:#1a3a5c;display:flex;align-items:center;justify-content:space-between}
+.card-hd .subtitle{font-size:12px;font-weight:400;color:#999}
+.card-bd{padding:18px}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:13px;color:#666;margin-bottom:4px;font-weight:500}
+.fg input,.fg select,.fg textarea{width:100%;padding:9px 12px;border:1px solid #d9d9d9;border-radius:8px;font-size:14px;transition:border .2s;font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#2d6a9f;box-shadow:0 0 0 2px rgba(45,106,159,0.1)}
+.fg textarea{resize:vertical;min-height:56px}
+.fg-row{display:flex;gap:10px}.fg-row .fg{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 16px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;text-decoration:none}
+.btn-primary{background:#2d6a9f;color:#fff}.btn-primary:hover{background:#1a5276}
+.btn-danger{background:#e74c3c;color:#fff}.btn-danger:hover{background:#c0392b}
+.btn-outline{background:#fff;color:#2d6a9f;border:1px solid #2d6a9f}.btn-outline:hover{background:#e8f4fd}
+.btn-success{background:#27ae60;color:#fff}.btn-success:hover{background:#1e8449}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-block{width:100%}
+.btn-xs{padding:3px 8px;font-size:11px;border-radius:4px}
+.btn-white{background:#fff;color:#1a3a5c}.btn-white:hover{background:#e8f4fd}
+.rec-list{max-height:450px;overflow-y:auto}
+.rec-item{padding:12px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:10px}
+.rec-item:hover{background:#f8fafc}
+.rec-item.active{background:#e8f4fd;border-left:3px solid #2d6a9f}
+.rec-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.rec-info{flex:1;min-width:0}
+.rec-title{font-weight:600;font-size:14px;color:#1a3a5c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-meta{font-size:12px;color:#999;margin-top:2px}
+.rec-act{display:flex;gap:4px;flex-shrink:0}
+.rec-empty{padding:40px 20px;text-align:center;color:#bbb;font-size:14px}
+.lv-tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600}
+.lv-high{background:#ffe0e0;color:#c0392b}.lv-medium{background:#fff3d6;color:#e67e22}.lv-low{background:#d5f5e3;color:#27ae60}
+.preview-wrap{background:#f5f6f8;padding:12px;display:flex;justify-content:center;border-radius:8px}
+.preview-phone{width:100%;max-width:400px}
+.detail-box{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.detail-top{background:linear-gradient(160deg,#1a5276,#2e86c1);color:#fff;padding:22px 18px 18px;position:relative;overflow:hidden}
+.detail-top::after{content:"";position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.06);border-radius:50%}
+.detail-top .type-tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;background:rgba(255,255,255,0.2);margin-bottom:10px;position:relative;z-index:1}
+.detail-top h2{font-size:22px;font-weight:700;margin-bottom:4px;position:relative;z-index:1;line-height:1.3}
+.detail-top .sub{font-size:13px;opacity:.85;position:relative;z-index:1}
+.risk-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-top:10px;position:relative;z-index:1}
+.risk-high{background:#ffe0e0;color:#c0392b}.risk-medium{background:#fff3d6;color:#e67e22}.risk-low{background:#d5f5e3;color:#27ae60}
+.detail-body{padding:14px}
+.info-card{background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid #2d6a9f}
+.info-card .info-label{font-size:12px;color:#999;margin-bottom:4px;letter-spacing:.5px}
+.info-card .info-value{font-size:14px;color:#333;line-height:1.7}
+.info-card.warn{border-left-color:#e67e22;background:#fffdf6}
+.info-card.danger{border-left-color:#e74c3c;background:#fff8f8}
+.detail-footer{text-align:center;padding:12px 16px 16px;color:#ccc;font-size:12px;border-top:1px solid #f0f0f0}
+.detail-qr{text-align:center;padding:18px;margin:12px 16px 0;background:#fafafa;border-radius:10px;border:2px dashed #2d6a9f}
+.detail-qr .qr-label{font-size:14px;font-weight:600;color:#1a3a5c;margin-bottom:4px}
+.detail-qr .qr-sub{font-size:12px;color:#999;margin-bottom:12px}
+.detail-qr .qr-url{font-size:11px;color:#2d6a9f;word-break:break-all;margin-top:10px}
+.detail-qr .qr-hint{font-size:11px;color:#27ae60;margin-top:6px}
+body.detail{background:#f5f6f8}
+.page-detail{max-width:480px;margin:0 auto;background:#fff;min-height:100vh}
+.page-detail .detail-box{border-radius:0;box-shadow:none}
+.page-detail .detail-top{padding:28px 20px 22px}
+.page-detail .detail-top h2{font-size:24px}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}.toast.success{background:#27ae60}.toast.error{background:#e74c3c}
+.deploy-info{background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:12px 16px;font-size:13px;color:#8c6d00;line-height:1.8;margin-top:16px}
+.deploy-info b{color:#d48806}
+@media(max-width:860px){.admin-layout{flex-direction:column}.admin-sidebar{width:100%}}
+</style>
+</head>
+<body>
+
+<div class="page-login">
+  <div class="login-box">
+    <div class="icon">🌍</div>
+    <h2>地质灾害管理系统</h2>
+    <div class="sub">请输入管理密码</div>
+    <input type="password" id="loginPwd" placeholder="管理密码" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="msg" id="loginMsg"></div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()">🔐 进入后台</button>
+  </div>
+</div>
+
+<div class="page-admin">
+  <div class="admin-header">
+    <h1>🌍 地质灾害调查信息管理系统</h1>
+    <div class="actions">
+      <span class="stats" id="stats">共 0 条记录</span>
+      <button class="btn btn-white btn-sm" onclick="logout()">🚪 退出</button>
+    </div>
+  </div>
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <div class="card">
+        <div class="card-hd">📝 新增 / 编辑灾害记录</div>
+        <div class="card-bd">
+          <form id="recordForm">
+            <div class="fg"><label>灾害名称 *</label><input type="text" id="inputName" placeholder="例：王家村后山滑坡" required></div>
+            <div class="fg-row">
+              <div class="fg"><label>类型 *</label><select id="inputType" required><option value="">请选择</option><option value="滑坡">滑坡</option><option value="泥石流">泥石流</option><option value="崩塌">崩塌</option><option value="地面塌陷">地面塌陷</option><option value="地裂缝">地裂缝</option><option value="其他">其他</option></select></div>
+              <div class="fg"><label>风险 *</label><select id="inputLevel" required><option value="">请选择</option><option value="高">🔴 高风险</option><option value="中">🟡 中风险</option><option value="低">🟢 低风险</option></select></div>
+            </div>
+            <div class="fg"><label>地理位置 *</label><input type="text" id="inputLocation" placeholder="例：XX省XX市XX县XX村" required></div>
+            <div class="fg"><label>经纬度（可选）</label><input type="text" id="inputCoord" placeholder="例：104.065,30.659"></div>
+            <div class="fg"><label>调查日期</label><input type="date" id="inputDate"></div>
+            <div class="fg"><label>灾害描述</label><textarea id="inputDesc" placeholder="描述灾害体规模、特征、影响范围..."></textarea></div>
+            <div class="fg"><label>防治建议</label><textarea id="inputAdvice" placeholder="防治措施、避险路线、预警信号..."></textarea></div>
+            <input type="hidden" id="inputEditId">
+            <div style="display:flex;gap:10px">
+              <button type="submit" class="btn btn-primary btn-block" id="btnSubmit">✅ 保存记录</button>
+              <button type="button" class="btn btn-outline btn-block" id="btnCancel" style="display:none" onclick="cancelEdit()">取消编辑</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd">
+          <span>📋 灾害列表</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-success btn-xs" onclick="exportAll()">📦 全部导出</button>
+          </div>
+        </div>
+        <div class="rec-list" id="recordList"><div class="rec-empty">暂无记录</div></div>
+      </div>
+    </div>
+    <div class="admin-main">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hd">
+          <span>📱 居民扫码效果预览</span>
+          <button class="btn btn-outline btn-sm" onclick="copyRecordUrl()" id="btnCopyUrl">📋 复制链接</button>
+        </div>
+        <div class="preview-wrap" style="padding:20px">
+          <div class="preview-phone" id="detailPreview">
+            <div class="detail-box">
+              <div class="detail-top" style="text-align:center"><h2>📋</h2><div class="sub" style="margin-top:8px">点击左侧记录查看预览</div></div>
+              <div class="detail-body"><div class="info-card"><div class="info-value" style="color:#bbb;text-align:center">选择一条记录后，此处展示移动端效果</div></div></div>
+              <div class="detail-footer">地质灾害调查信息管理系统</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="deploy-info" id="deployInfo">
+        <b>📌 如何让居民扫码访问：</b><br>
+        1. 把这个 <code>index.html</code> 部署到 GitHub Pages 或任何静态服务器<br>
+        2. 每条记录的访问链接格式：<code id="urlExample">https://你的域名/#detail/记录ID</code><br>
+        3. 用这个链接生成二维码，居民扫码即可在微信中查看
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-detail" id="detailPage"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var ADMIN_PASSWORD="admin123";
+var STORAGE_KEY="geohazard_data";
+function getRecords(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]}catch(e){return[]}}
+function saveRecords(r){localStorage.setItem(STORAGE_KEY,JSON.stringify(r))}
+function genId(){return"gh_"+Date.now()+"_"+Math.random().toString(36).substr(2,6)}
+var icons={"滑坡":"⛰️","泥石流":"🌊","崩塌":"🪨","地面塌陷":"🕳️","地裂缝":"⚡","其他":"⚠️"};
+var currentSelectedId=null;
+function esc(s){if(!s)return"";var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function toast(m,t){t=t||"";var e=document.getElementById("toast");e.textContent=m;e.className="toast "+t+" show";clearTimeout(e._t);e._t=setTimeout(function(){e.className="toast"},2000)}
+function getPageFromHash(){
+  var h=window.location.hash;
+  if(!h||h==="#")return"login";
+  if(h==="#admin")return isLoggedIn()?"admin":"login";
+  if(h.indexOf("#detail/")===0)return"detail";
+  return"login";
+}
+function isLoggedIn(){return sessionStorage.getItem("geohazard_auth")==="1"}
+function setLoggedIn(v){if(v)sessionStorage.setItem("geohazard_auth","1");else sessionStorage.removeItem("geohazard_auth")}
+function switchPage(page){
+  document.body.className=page;
+  if(page==="admin"){setLoggedIn(true);renderList();}
+  if(page==="detail")renderPublicDetail();
+  if(page==="login"){setLoggedIn(false);document.getElementById("loginPwd").value="";document.getElementById("loginMsg").textContent="";document.getElementById("loginPwd").focus()}
+}
+function doLogin(){
+  var p=document.getElementById("loginPwd").value;
+  if(p===ADMIN_PASSWORD){switchPage("admin");window.location.hash="#admin"}
+  else{document.getElementById("loginMsg").textContent="密码错误"}
+}
+function logout(){setLoggedIn(false);window.location.hash=""}
+function renderList(){
+  var recs=getRecords();
+  document.getElementById("stats").textContent="共 "+recs.length+" 条记录";
+  var el=document.getElementById("recordList");
+  if(!recs.length){el.innerHTML='<div class="rec-empty">暂无记录</div>';return}
+  var h="";
+  recs.forEach(function(r){
+    var cls=r.id===currentSelectedId?" active":"";
+    h+='<div class="rec-item'+cls+'" onclick="selectRecord(\''+r.id+'\')">';
+    h+='<div class="rec-icon" style="background:'+typeBg(r.type)+'">'+(icons[r.type]||"⚠️")+'</div>';
+    h+='<div class="rec-info"><div class="rec-title">'+esc(r.name)+'</div><div class="rec-meta">'+esc(r.location)+' · '+r.date+'</div></div>';
+    h+='<div class="rec-act" onclick="event.stopPropagation()">';
+    h+='<button class="btn btn-outline btn-sm" onclick="editRecord(\''+r.id+'\')">✏️</button>';
+    h+='<button class="btn btn-success btn-sm" onclick="exportOne(\''+r.id+'\')">📤</button>';
+    h+='<button class="btn btn-danger btn-sm" onclick="deleteRecord(\''+r.id+'\')">🗑️</button></div></div>';
+  });
+  el.innerHTML=h;
+}
+function typeBg(t){var m={"滑坡":"#fff0e0","泥石流":"#e0f0ff","崩塌":"#ffe0e0","地面塌陷":"#e8e0f0","地裂缝":"#ffffe0","其他":"#f0f0f0"};return m[t]||"#f0f0f0"}
+function selectRecord(id){currentSelectedId=id;renderList();renderAdminPreview(id)}
+function renderAdminPreview(id){
+  var r=getRecords().find(function(x){return x.id===id});
+  var el=document.getElementById("detailPreview");
+  if(!r){el.innerHTML='<div class="detail-box"><div class="detail-top" style="text-align:center"><h2>📋</h2><div class="sub" style="margin-top:8px">点击左侧记录查看预览</div></div><div class="detail-body"><div class="info-card"><div class="info-value" style="color:#bbb;text-align:center">选择一条记录后查看效果</div></div></div><div class="detail-footer">地质灾害调查信息管理系统</div></div>';return}
+  var url=window.location.origin+window.location.pathname+"#detail/"+r.id;
+  var risk={"高":"high","中":"medium","低":"low"}[r.level]||"medium";
+  var riskLabel={"高":"🔴 高风险","中":"🟡 中风险","低":"🟢 低风险"}[r.level]||"风险";
+  el.innerHTML=
+    '<div class="detail-box"><div class="detail-top"><div class="type-tag">'+esc(r.type)+'</div><h2>'+esc(r.name)+'</h2><div class="sub">调查日期：'+esc(r.date)+'</div><div class="risk-badge risk-'+risk+'">'+riskLabel+'</div></div>'+
+    '<div class="detail-body">'+
+    '<div class="info-card"><div class="info-label">📍 地理位置</div><div class="info-value">'+esc(r.location)+(r.coord?'<br><span style="font-size:12px;color:#999">经纬度：'+esc(r.coord)+'</span>':'')+'</div></div>'+
+    (r.description?'<div class="info-card warn"><div class="info-label">📝 灾害描述</div><div class="info-value">'+esc(r.description)+'</div></div>':'')+
+    (r.advice?'<div class="info-card danger"><div class="info-label">🛡️ 防治建议</div><div class="info-value">'+esc(r.advice)+'</div></div>':'')+
+    '</div>'+
+    '<div class="detail-qr"><div class="qr-label">📱 微信扫码查看</div><div class="qr-sub">'+esc(url)+'</div><div id="qrAdmin" style="display:flex;justify-content:center"></div><div class="qr-hint">微信扫码后打开此灾害详情页</div></div>'+
+    '<div class="detail-footer">地质灾害调查信息管理系统</div></div>';
+  document.getElementById("btnCopyUrl").onclick=function(){copyUrl(url)};
+  document.getElementById("urlExample").textContent=url;
+  setTimeout(function(){
+    var c=document.getElementById("qrAdmin");if(c){c.innerHTML="";new QRCode(c,{text:url,width:170,height:170,colorDark:"#1a3a5c",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M})}
+  },50);
+}
+function copyUrl(url){
+  if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){toast("链接已复制","success")})}
+  else{var ta=document.createElement("textarea");ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);toast("链接已复制","success")}
+}
+function copyRecordUrl(){
+  var r=getRecords().find(function(x){return x.id===currentSelectedId});
+  if(!r){toast("请先选择一条记录","error");return}
+  copyUrl(window.location.origin+window.location.pathname+"#detail/"+r.id);
+}
+document.getElementById("recordForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var editId=document.getElementById("inputEditId").value;
+  var rec={
+    id:editId||genId(),
+    name:document.getElementById("inputName").value.trim(),
+    type:document.getElementById("inputType").value,
+    level:document.getElementById("inputLevel").value,
+    location:document.getElementById("inputLocation").value.trim(),
+    coord:document.getElementById("inputCoord").value.trim(),
+    date:document.getElementById("inputDate").value,
+    description:document.getElementById("inputDesc").value.trim(),
+    advice:document.getElementById("inputAdvice").value.trim(),
+    createdAt:editId?(getRecords().find(function(x){return x.id===editId})||{}).createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  if(!rec.name||!rec.type||!rec.level||!rec.location){toast("请填写所有必填项","error");return}
+  var recs=getRecords();
+  if(editId){var i=recs.findIndex(function(x){return x.id===editId});if(i>=0)recs[i]=rec;toast("已更新","success")}
+  else{recs.unshift(rec);toast("已添加","success")}
+  saveRecords(recs);resetForm();renderList();selectRecord(rec.id);
+});
+function editRecord(id){
+  var r=getRecords().find(function(x){return x.id===id});if(!r)return;
+  document.getElementById("inputEditId").value=r.id;
+  document.getElementById("inputName").value=r.name;
+  document.getElementById("inputType").value=r.type;
+  document.getElementById("inputLevel").value=r.level;
+  document.getElementById("inputLocation").value=r.location;
+  document.getElementById("inputCoord").value=r.coord||"";
+  document.getElementById("inputDate").value=r.date;
+  document.getElementById("inputDesc").value=r.description||"";
+  document.getElementById("inputAdvice").value=r.advice||"";
+  document.getElementById("btnSubmit").textContent="💾 更新记录";
+  document.getElementById("btnCancel").style.display="";
+  document.querySelector(".admin-sidebar .card:first-child").scrollIntoView({behavior:"smooth"});
+}
+function cancelEdit(){resetForm()}
+function resetForm(){
+  document.getElementById("recordForm").reset();
+  document.getElementById("inputEditId").value="";
+  document.getElementById("btnSubmit").textContent="✅ 保存记录";
+  document.getElementById("btnCancel").style.display="none";
+}
+function deleteRecord(id){
+  if(!confirm("确定删除？"))return;
+  saveRecords(getRecords().filter(function(x){return x.id!==id}));
+  if(currentSelectedId===id){currentSelectedId=null;document.getElementById("detailPreview").innerHTML='<div class="detail-box"><div class="detail-top" style="text-align:center"><h2>📋</h2></div><div class="detail-body"><div class="info-card"><div class="info-value" style="color:#bbb;text-align:center">—</div></div></div></div>'}
+  renderList();toast("已删除","error");
+}
+function renderPublicDetail(){
+  var m=window.location.hash.match(/^#detail\/(.+)$/);
+  var id=m?m[1]:null;
+  var r=id?getRecords().find(function(x){return x.id===id}):null;
+  var el=document.getElementById("detailPage");
+  if(!r){document.title="记录不存在";el.innerHTML='<div style="text-align:center;padding:80px 20px"><div style="font-size:60px;margin-bottom:16px">🔍</div><h3 style="color:#666;margin-bottom:8px">未找到该灾害记录</h3><p style="color:#999;font-size:14px">记录可能已被删除</p></div>';return}
+  document.title=r.name+" - 地质灾害调查";
+  var risk={"高":"high","中":"medium","低":"low"}[r.level]||"medium";
+  var riskLabel={"高":"🔴 高风险","中":"🟡 中风险","低":"🟢 低风险"}[r.level]||"风险";
+  el.innerHTML=
+    '<div class="detail-box"><div class="detail-top"><div class="type-tag">'+esc(r.type)+'</div><h2>'+esc(r.name)+'</h2><div class="sub">调查日期：'+esc(r.date)+'</div><div class="risk-badge risk-'+risk+'">'+riskLabel+'</div></div>'+
+    '<div class="detail-body">'+
+    '<div class="info-card"><div class="info-label">📍 地理位置</div><div class="info-value">'+esc(r.location)+(r.coord?'<br><span style="font-size:12px;color:#999">经纬度：'+esc(r.coord)+'</span>':'')+'</div></div>'+
+    (r.description?'<div class="info-card warn"><div class="info-label">📝 灾害描述</div><div class="info-value">'+esc(r.description)+'</div></div>':'')+
+    (r.advice?'<div class="info-card danger"><div class="info-label">🛡️ 防治建议</div><div class="info-value">'+esc(r.advice)+'</div></div>':'')+
+    '</div>'+
+    '<div style="margin:0 16px 16px"><div style="background:#e8f4fd;border-radius:12px;height:160px;display:flex;align-items:center;justify-content:center;color:#2d6a9f;font-size:14px;flex-direction:column;gap:6px"><div style="font-size:36px">🗺️</div><div>灾害点位示意图</div><div style="font-size:11px;color:#999">'+esc(r.location)+'</div></div></div>'+
+    '<div class="detail-footer"><div>地质灾害调查信息管理系统</div></div></div>';
+}
+function exportOne(id){
+  var r=getRecords().find(function(x){return x.id===id});if(!r)return;
+  downloadFile(r.name+"-灾害调查.html",buildExportHTML(r));toast("已导出","success");
+}
+function exportAll(){
+  var recs=getRecords();if(!recs.length){toast("没有可导出的记录","error");return}
+  var c=0;recs.forEach(function(r){downloadFile(r.name+"-灾害调查.html",buildExportHTML(r));c++});
+  toast("已导出 "+c+" 个文件","success");
+}
+function buildExportHTML(r){
+  var risk={"高":"high","中":"medium","低":"low"}[r.level]||"medium";
+  var riskLabel={"高":"🔴 高风险","中":"🟡 中风险","低":"🟢 低风险"}[r.level]||"风险";
+  var qrText=["【地质灾害调查信息】","","灾害名称："+r.name,"灾害类型："+r.type,"风险等级："+r.level,"地理位置："+r.location];
+  if(r.coord)qrText.push("经纬度："+r.coord);
+  qrText.push("调查日期："+r.date);
+  if(r.description)qrText.push("","【灾害描述】",r.description);
+  if(r.advice)qrText.push("","【防治建议】",r.advice);
+  qrText.push("","—— 地质灾害调查 ——");
+  var qr=JSON.stringify(qrText.join("\n"));
+  return '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">\n<title>'+esc(r.name)+' - 地质灾害调查</title>\n'+
+'<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>\n<style>\n'+
+'*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f6f8;color:#333}'+
+'.page{max-width:480px;margin:0 auto;background:#fff;min-height:100vh}'+
+'.top{background:linear-gradient(160deg,#1a5276,#2e86c1);color:#fff;padding:28px 20px 22px;position:relative;overflow:hidden}'+
+'.top::after{content:"";position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(255,255,255,0.06);border-radius:50%}'+
+'.top::before{content:"";position:absolute;bottom:-20px;left:-20px;width:90px;height:90px;background:rgba(255,255,255,0.04);border-radius:50%}'+
+'.type-tag{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:500;background:rgba(255,255,255,0.2);margin-bottom:14px;position:relative;z-index:1}'+
+'.top h2{font-size:24px;font-weight:700;margin-bottom:6px;position:relative;z-index:1;line-height:1.3}.top .sub{font-size:13px;opacity:.85;position:relative;z-index:1}'+
+'.risk{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:15px;font-weight:700;margin-top:14px;position:relative;z-index:1}'+
+'.risk-high{background:#ffe0e0;color:#c0392b}.risk-medium{background:#fff3d6;color:#e67e22}.risk-low{background:#d5f5e3;color:#27ae60}'+
+'.bd{padding:16px}.card{background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:12px;border-left:3px solid #2d6a9f}'+
+'.card.warn{border-left-color:#e67e22;background:#fffdf6}.card.danger{border-left-color:#e74c3c;background:#fff8f8}'+
+'.card .label{font-size:12px;color:#999;margin-bottom:4px}.card .val{font-size:15px;color:#333;line-height:1.7}'+
+'.map{background:#e8f4fd;border-radius:12px;height:180px;display:flex;align-items:center;justify-content:center;color:#2d6a9f;font-size:14px;flex-direction:column;gap:8px;margin:0 16px 16px}.map-icon{font-size:40px}'+
+'.qr-block{text-align:center;padding:24px 16px;margin:0 16px 20px;background:#fafafa;border-radius:12px;border:2px dashed #2d6a9f}'+
+'.qr-block .qr-title{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:4px}.qr-block .qr-sub{font-size:12px;color:#999;margin-bottom:16px}'+
+'.qr-block .qr-hint{font-size:12px;color:#27ae60;margin-top:12px;font-weight:500}'+
+'.ft{text-align:center;padding:16px 20px 24px;color:#ccc;font-size:12px;border-top:1px solid #f0f0f0;margin:0 16px}'+
+'</style>\n</head>\n<body>\n<div class="page">\n'+
+'<div class="top"><div class="type-tag">'+esc(r.type)+'</div><h2>'+esc(r.name)+'</h2><div class="sub">调查日期：'+esc(r.date)+'</div><div class="risk risk-'+risk+'">'+riskLabel+'</div></div>\n'+
+'<div class="bd">\n'+
+'<div class="card"><div class="label">📍 地理位置</div><div class="val">'+esc(r.location)+(r.coord?'<br><span style="font-size:12px;color:#999">经纬度：'+esc(r.coord)+'</span>':'')+'</div></div>\n'+
+(r.description?'<div class="card warn"><div class="label">📝 灾害描述</div><div class="val">'+esc(r.description).replace(/\n/g,"<br>")+'</div></div>\n':'')+
+(r.advice?'<div class="card danger"><div class="label">🛡️ 防治建议</div><div class="val">'+esc(r.advice).replace(/\n/g,"<br>")+'</div></div>\n':'')+
+'</div>\n'+
+'<div class="map"><div class="map-icon">🗺️</div><div>灾害点位示意图</div><div style="font-size:11px;color:#999">'+esc(r.location)+'</div></div>\n'+
+'<div class="qr-block"><div class="qr-title">📱 微信扫一扫</div><div class="qr-sub">查看灾害详情信息</div><div style="display:flex;justify-content:center" id="qrbox"></div><div class="qr-hint">✅ 无需联网 · 无需登录 · 扫码即看</div></div>\n'+
+'<div class="ft"><div>地质灾害调查信息管理系统</div></div>\n</div>\n'+
+'<script>new QRCode(document.getElementById("qrbox"),{text:'+qr+',width:200,height:200,colorDark:"#1a3a5c",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.L})<\/script>\n</body>\n</html>';
+}
+function downloadFile(n,c){var b=new Blob([c],{type:"text/html;charset=utf-8"});var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=n;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u)}
+(function init(){
+  var page=getPageFromHash();switchPage(page);
+  window.addEventListener("hashchange",function(){switchPage(getPageFromHash())});
+  if(!document.getElementById("inputDate").value)document.getElementById("inputDate").value=new Date().toISOString().split("T")[0];
+})();
+</script>
+</body>
+</html>
